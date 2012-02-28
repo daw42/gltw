@@ -36,8 +36,8 @@ namespace gltw {
 			"void main() {"
 			"  FragColor = color;"
 			"}";
-		source[SHADER_LIGHT][0] = NULL;
-		source[SHADER_LIGHT][1] = NULL;
+		source[SHADER_DEFAULT_LIGHT][0] = NULL;
+		source[SHADER_DEFAULT_LIGHT][1] = NULL;
 		source[SHADER_POINT_LIGHT][0] = NULL;
 		source[SHADER_POINT_LIGHT][1] = NULL;
 		
@@ -139,6 +139,14 @@ namespace gltw {
             shaderID = glCreateProgram();
             glAttachShader(shaderID, vert);
             glAttachShader(shaderID, frag);
+
+			// Set up attribute locations
+			glBindAttribLocation( shaderID, GLTW_ATTRIB_POSITION, "vPosition" );
+			if( shader == SHADER_PER_VERT_COLOR )
+			{
+				glBindAttribLocation(shaderID, GLTW_ATTRIB_COLOR, "vColor" );
+			}
+
             glLinkProgram( shaderID );
             if( ! checkLinkStatus(shaderID ) ) {
                 glDeleteShader(vert);
@@ -148,7 +156,7 @@ namespace gltw {
                 return false;
             }
         }
-        
+
         return true;
     }
     

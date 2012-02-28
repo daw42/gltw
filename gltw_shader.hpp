@@ -5,10 +5,15 @@ namespace gltw {
 	enum Shader {
         SHADER_FLAT = 0, 
         SHADER_PER_VERT_COLOR, 
-        SHADER_LIGHT, 
+        SHADER_DEFAULT_LIGHT, 
         SHADER_POINT_LIGHT, 
         SHADER_NONE
     };
+
+	enum Attributes {
+		GLTW_ATTRIB_POSITION = 0,
+		GLTW_ATTRIB_COLOR
+	};
 
 	class GltwState {
 	private:
