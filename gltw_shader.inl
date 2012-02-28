@@ -1,13 +1,13 @@
 
 namespace gltw {
 	inline GltwState::GltwState() { 
-		for( int i = 0; i < NUM_SHADERS; i++ ) shaderIDs[i] = 0; 
+		for( int i = 0; i < SHADER_NONE; i++ ) shaderIDs[i] = 0; 
 			
         source[SHADER_FLAT][0] = // gltw::SHADER_FLAT vertex shader
 			"#version 150 \n"
 			"in vec4 vPosition;"
 			"uniform mat4 mv;"
-			"uniform mat4 proj;
+			"uniform mat4 proj;"
 			"void main() {"
 			"  gl_Position = proj * mv * vPosition;"
 			"}";
@@ -24,7 +24,7 @@ namespace gltw {
 			"in vec4 vColor;"
 			"out vec4 color;"
 			"uniform mat4 mv;"
-			"uniform mat4 proj;
+			"uniform mat4 proj;"
 			"void main() {"
 			"  color = vColor;"
 			"  gl_Position = proj * mv * vPosition;"
@@ -65,10 +65,12 @@ namespace gltw {
             glUseProgram(shaderID);
             initUniforms();
         }
-        activeShader = shader;
+		GltwState::state().activeShader = shader;
     }
     
     inline void initUniforms() {
+		gltw::Shader &activeShader = GltwState::state().activeShader;
+
         if( activeShader != SHADER_NONE )
         {
             GLuint id = GltwState::state().shaderIDs[ activeShader ];
@@ -189,15 +191,16 @@ namespace gltw {
     inline void setModelViewMatrix( GLfloat *matrix )
     {        
         GltwState &state = GltwState::state();
-        if( activeShader != SHADER_NONE ) {
-            setUniformMatrix4( state.shaderIDs[activeShader], "mv", mv );
+        if( state.activeShader != SHADER_NONE ) {
+            setUniformMatrix4( state.shaderIDs[state.activeShader], "mv", matrix );
         }
     }
     
     inline void setColor( GLfloat *color )
     {
-        if( activeShader == SHADER_FLAT ) {
-            setUniform4fv( GltwState::state().shaderIDs[activeShader], "color", color);
+		GltwState &state = GltwState::state();
+        if( state.activeShader == SHADER_FLAT ) {
+            setUniform4fv( GltwState::state().shaderIDs[state.activeShader], "color", color);
         }
     }
 }
