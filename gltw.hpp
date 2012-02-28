@@ -1,14 +1,9 @@
 #ifndef __gltw_hpp
 #define __gltw_hpp
 
-// OpenGL includes.  You may need to fix this up to match your OpenGL setup.
-#ifdef WIN32
-#include <glload/gl_3_3.h>
-#endif
+// The main include file for GLTW
 
-#ifdef __APPLE__
-#include <OpenGL/gl3.h>
-#endif
+// Be sure to include your OpenGL headers before including this file
 
 #include <iostream>
 using std::cerr;
