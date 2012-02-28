@@ -1,28 +1,15 @@
 
-
 namespace gltw {
 	inline GltwState::GltwState() { 
 		for( int i = 0; i < NUM_SHADERS; i++ ) shaderIDs[i] = 0; 
 			
-        source[SHADER_IDENTITY][0] = // gltw::SHADER_IDENTITY vertex shader
+        source[SHADER_FLAT][0] = // gltw::SHADER_FLAT vertex shader
 			"#version 150 \n"
 			"in vec4 vPosition;"
+			"uniform mat4 mv;"
+			"uniform mat4 proj;
 			"void main() {"
-			"  gl_Position = vPosition;"
-			"}";
-		source[SHADER_IDENTITY][1] = // gltw::SHADER_IDENTITY fragment shader
-			"#version 150 \n"
-			"uniform vec4 color;"
-			"out vec4 FragColor;"
-			"void main() {"
-			"   FragColor = color;"
-			"}";
-		source[SHADER_FLAT][0] = // gltw::SHADER_FLAT vertex shader
-			"#version 150 \n"
-			"in vec4 vPosition;"
-			"uniform mat4 mvp;"
-			"void main() {"
-			"  gl_Position = mvp * vPosition;"
+			"  gl_Position = proj * mv * vPosition;"
 			"}";
 		source[SHADER_FLAT][1] = // gltw::SHADER_FLAT fragment shader
 			"#version 150 \n"
@@ -31,12 +18,30 @@ namespace gltw {
 			"void main() {"
 			"   FragColor = color;"
 			"}";
-		source[SHADER_SHADED][0] = NULL;
-		source[SHADER_SHADED][1] = NULL;
+		source[SHADER_PER_VERT_COLOR][0] = 
+		    "#version 150 \n"
+			"in vec4 vPosition;"
+			"in vec4 vColor;"
+			"out vec4 color;"
+			"uniform mat4 mv;"
+			"uniform mat4 proj;
+			"void main() {"
+			"  color = vColor;"
+			"  gl_Position = proj * mv * vPosition;"
+			"}";
+		source[SHADER_PER_VERT_COLOR][1] = 
+		    "#version 150 \n"
+			"in vec4 color;"
+			"out vec4 FragColor;"
+			"void main() {"
+			"  FragColor = color;"
+			"}";
 		source[SHADER_LIGHT][0] = NULL;
 		source[SHADER_LIGHT][1] = NULL;
 		source[SHADER_POINT_LIGHT][0] = NULL;
 		source[SHADER_POINT_LIGHT][1] = NULL;
+		
+		activeShader = SHADER_NONE;
 	}
 
 	inline GltwState& GltwState::state() {
@@ -44,36 +49,42 @@ namespace gltw {
 		return *state;
 	}
 
-	inline void useStockShader( gltw::Shader shader, ... )
+	inline void useStockShader( gltw::Shader shader )
     {
-        va_list vargs;
-        
-        va_start( vargs, shader );
-
 		GLuint &shaderID = GltwState::state().shaderIDs[ shader ];
         
-        if( shaderID == 0 )
+        if( shaderID == 0 && shader != SHADER_NONE )
         {
             if( ! compileAndLoadShaderPair( shader ) )
                 return;
         }
         
-        glUseProgram(shaderID);
-        
-		GLfloat *color;
-		GLfloat *matrix;
-        switch( shader )
+        if( shader == SHADER_NONE ) {
+            glUseProgram(0);
+        } else {
+            glUseProgram(shaderID);
+            initUniforms();
+        }
+        activeShader = shader;
+    }
+    
+    inline void initUniforms() {
+        if( activeShader != SHADER_NONE )
         {
-            case SHADER_IDENTITY:
-                color = va_arg(vargs, GLfloat *);
-                setUniform4fv(shaderID, "color", color );
-                break;
-			case SHADER_FLAT:
-				matrix = va_arg(vargs, GLfloat *);
-				setUniformMatrix4(shaderID, "mvp", matrix);
-				color = va_arg(vargs, GLfloat *);
-				setUniform4fv(shaderID, "color", color);
-				break;
+            GLuint id = GltwState::state().shaderIDs[ activeShader ];
+            GLfloat identity[] = {1.0f, 0.0f, 0.0f, 0.0f,
+                                  0.0f, 1.0f, 0.0f, 0.0f,
+                                  0.0f, 0.0f, 1.0f, 0.0f,
+                                  0.0f, 0.0f, 0.0f, 1.0f };
+            setUniformMatrix4( id, "mv", identity );
+            setUniformMatrix4( id, "proj", identity );
+        }
+        
+        if( activeShader == SHADER_FLAT )
+        {
+            GLuint id = GltwState::state().shaderIDs[ activeShader ];
+            GLfloat white[] = {1.0f, 1.0f, 1.0f, 1.0f};
+            setUniform4fv( id, "color", white );
         }
     }
     
@@ -173,5 +184,20 @@ namespace gltw {
         
         delete [] log;
         return false;
+    }
+    
+    inline void setModelViewMatrix( GLfloat *matrix )
+    {        
+        GltwState &state = GltwState::state();
+        if( activeShader != SHADER_NONE ) {
+            setUniformMatrix4( state.shaderIDs[activeShader], "mv", mv );
+        }
+    }
+    
+    inline void setColor( GLfloat *color )
+    {
+        if( activeShader == SHADER_FLAT ) {
+            setUniform4fv( GltwState::state().shaderIDs[activeShader], "color", color);
+        }
     }
 }

@@ -3,8 +3,11 @@
 
 namespace gltw {
 	enum Shader {
-        SHADER_IDENTITY = 0, SHADER_FLAT, SHADER_SHADED, SHADER_LIGHT, SHADER_POINT_LIGHT, 
-        NUM_SHADERS
+        SHADER_FLAT = 0, 
+        SHADER_PER_VERT_COLOR, 
+        SHADER_LIGHT, 
+        SHADER_POINT_LIGHT, 
+        SHADER_NONE
     };
 
 	class GltwState {
@@ -12,17 +15,24 @@ namespace gltw {
 		GltwState();
 
 	public:
-		GLuint shaderIDs[ gltw::NUM_SHADERS ];
-		const char * source[gltw::NUM_SHADERS][2];
+		GLuint shaderIDs[ gltw::SHADER_NONE ];
+		Shader activeShader;
+		
+		const char * source[gltw::SHADER_NONE][2];
 		static GltwState& state();
 	};
         
-    void useStockShader( gltw::Shader , ... );
+    void useStockShader( gltw::Shader );
     void setUniform4fv( GLuint, const char *, GLfloat * );
 	void setUniformMatrix4( GLuint, const char *, GLfloat *);
     bool compileAndLoadShaderPair( gltw::Shader );
     bool checkCompilationStatus( GLuint );
     bool checkLinkStatus( GLuint );
+    void initUniforms();
+    
+    void setModelViewMatrix( GLfloat * );
+    void setProjectionMatrix( GLfloat * );
+    void setColor( GLfloat * );
 }
 
 #include "gltw_shader.inl"
