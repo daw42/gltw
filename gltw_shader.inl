@@ -1,6 +1,6 @@
 
 namespace gltw {
-	inline GltwState::GltwState() { 
+	inline ShaderState::ShaderState() { 
 		for( int i = 0; i < SHADER_NONE; i++ ) shaderIDs[i] = 0; 
 			
         source[SHADER_FLAT][0] = // gltw::SHADER_FLAT vertex shader
@@ -58,25 +58,47 @@ namespace gltw {
 			"void main() {"
 			"   FragColor = fColor;"
 			"}";
-		source[SHADER_POINT_LIGHT][0] = NULL;
-		source[SHADER_POINT_LIGHT][1] = NULL;
+		source[SHADER_POINT_LIGHT][0] = 
+			"#version 150 \n"
+			"in vec3 vPosition;"
+			"in vec3 vNormal;"
+			"uniform mat4 mv;"
+			"uniform mat4 proj;"
+			"uniform vec4 color = vec4(0.9,0.9,0.9,1.0);"
+			"uniform vec3 lightPos = vec3(0.0);"
+			"out vec4 fColor;"
+			"void main() {"
+			"   mat3 normMatrix = mat3(mv[0].xyz, mv[1].xyz, mv[2].xyz);"
+			"   vec3 n = normalize( normMatrix * vNormal );"
+			"   vec4 ecPos = mv * vec4(vPosition,1.0);"
+			"   vec3 light = normalize( lightPos - ecPos.xyz );"
+			"   fColor = vec4( color.rgb * max(0.0, dot(n,light)), color.a );"
+			"   gl_Position = proj * mv * vec4(vPosition,1.0);"
+			"}";
+		source[SHADER_POINT_LIGHT][1] = 
+			"#version 150 \n"
+			"in vec4 fColor;"
+			"out vec4 FragColor;"
+			"void main() {"
+			"   FragColor = fColor;"
+			"}";
 		
 		activeShader = SHADER_NONE;
 	}
 
-	inline GltwState& GltwState::state() {
-		static GltwState *state = new GltwState();
+	inline ShaderState& ShaderState::state() {
+		static ShaderState *state = new ShaderState();
 		return *state;
 	}
 
 	inline void useStockShader( gltw::Shader shader )
     {
-		GLuint &shaderID = GltwState::state().shaderIDs[ shader ];
+		GLuint &shaderID = ShaderState::state().shaderIDs[ shader ];
         
         if( shaderID == 0 && shader != SHADER_NONE )
         {
             if( ! compileAndLoadShaderPair( shader ) )
-                return;
+                exit(1);
         }
         
         if( shader == SHADER_NONE ) {
@@ -85,15 +107,15 @@ namespace gltw {
             glUseProgram(shaderID);
             initUniforms();
         }
-		GltwState::state().activeShader = shader;
+		ShaderState::state().activeShader = shader;
     }
     
     inline void initUniforms() {
-		gltw::Shader &activeShader = GltwState::state().activeShader;
+		gltw::Shader &activeShader = ShaderState::state().activeShader;
 
         if( activeShader != SHADER_NONE )
         {
-            GLuint id = GltwState::state().shaderIDs[ activeShader ];
+            GLuint id = ShaderState::state().shaderIDs[ activeShader ];
             GLfloat identity[] = {1.0f, 0.0f, 0.0f, 0.0f,
                                   0.0f, 1.0f, 0.0f, 0.0f,
                                   0.0f, 0.0f, 1.0f, 0.0f,
@@ -104,7 +126,7 @@ namespace gltw {
         
         if( activeShader == SHADER_FLAT )
         {
-            GLuint id = GltwState::state().shaderIDs[ activeShader ];
+            GLuint id = ShaderState::state().shaderIDs[ activeShader ];
             GLfloat white[] = {1.0f, 1.0f, 1.0f, 1.0f};
             setUniform4fv( id, "color", white );
         }
@@ -114,6 +136,15 @@ namespace gltw {
         GLint location = glGetUniformLocation(progID, name);
         if( location != -1 ) { 
             glUniform4fv( location, 1, value );
+        } else {
+            cerr << "Unable to set uniform \"" << name << "\"" << endl;
+        }
+    }
+
+	inline void setUniform3fv( GLuint progID, const char * name, GLfloat *value ) {
+        GLint location = glGetUniformLocation(progID, name);
+        if( location != -1 ) { 
+            glUniform3fv( location, 1, value );
         } else {
             cerr << "Unable to set uniform \"" << name << "\"" << endl;
         }
@@ -130,7 +161,7 @@ namespace gltw {
     
     inline bool compileAndLoadShaderPair( gltw::Shader shader )
     {
-		GLuint &shaderID = GltwState::state().shaderIDs[ shader ];
+		GLuint &shaderID = ShaderState::state().shaderIDs[ shader ];
         if( shaderID == 0 ) 
         {
             // Create the shader objects
@@ -138,8 +169,8 @@ namespace gltw {
             GLuint frag = glCreateShader(GL_FRAGMENT_SHADER);
             
             // Load the shader source
-            glShaderSource(vert, 1, &GltwState::state().source[shader][0], NULL);
-            glShaderSource(frag, 1, &GltwState::state().source[shader][1], NULL);
+            glShaderSource(vert, 1, &ShaderState::state().source[shader][0], NULL);
+            glShaderSource(frag, 1, &ShaderState::state().source[shader][1], NULL);
             
             // Compile
             glCompileShader(vert);
@@ -221,7 +252,7 @@ namespace gltw {
     
     inline void setModelViewMatrix( GLfloat *matrix )
     {        
-        GltwState &state = GltwState::state();
+        ShaderState &state = ShaderState::state();
         if( state.activeShader != SHADER_NONE ) {
             setUniformMatrix4( state.shaderIDs[state.activeShader], "mv", matrix );
         }
@@ -229,7 +260,7 @@ namespace gltw {
 
 	inline void setProjectionMatrix( GLfloat *matrix )
     {        
-        GltwState &state = GltwState::state();
+        ShaderState &state = ShaderState::state();
         if( state.activeShader != SHADER_NONE ) {
             setUniformMatrix4( state.shaderIDs[state.activeShader], "proj", matrix );
         }
@@ -237,9 +268,18 @@ namespace gltw {
     
     inline void setColor( GLfloat *color )
     {
-		GltwState &state = GltwState::state();
-        if( state.activeShader == SHADER_FLAT ) {
-            setUniform4fv( GltwState::state().shaderIDs[state.activeShader], "color", color);
+		ShaderState &state = ShaderState::state();
+		if( state.activeShader == SHADER_FLAT || state.activeShader == SHADER_DEFAULT_LIGHT ||
+			state.activeShader == SHADER_POINT_LIGHT ) {
+            setUniform4fv( state.shaderIDs[state.activeShader], "color", color);
         }
     }
+
+	inline void setLightPosition( GLfloat *pos )
+	{
+		ShaderState &state = ShaderState::state();
+		if( state.activeShader == SHADER_POINT_LIGHT ) {
+            setUniform3fv( state.shaderIDs[state.activeShader], "lightPos", pos);
+        }
+	}
 }

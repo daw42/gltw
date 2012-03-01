@@ -16,16 +16,20 @@ namespace gltw {
 		GLTW_ATTRIB_NORMAL
 	};
 
-	class GltwState {
+	/** @internal */
+	class ShaderState {
 	private:
-		GltwState();
+		ShaderState();
 
 	public:
+		/** The IDs of the shader programs */
 		GLuint shaderIDs[ gltw::SHADER_NONE ];
+		/** The currently active shader */
 		Shader activeShader;
-		
+		/** Source code for the shaders */
 		const char * source[gltw::SHADER_NONE][2];
-		static GltwState& state();
+		/** Retrieves the singleton object. */
+		static ShaderState& state();
 	};
         
     void useStockShader( gltw::Shader );
@@ -36,6 +40,9 @@ namespace gltw {
     bool checkLinkStatus( GLuint );
     void initUniforms();
     
+	/**
+	 * This is docs for setModelViewMatrix.
+	 */
     void setModelViewMatrix( GLfloat * );
     void setProjectionMatrix( GLfloat * );
     void setColor( GLfloat * );
