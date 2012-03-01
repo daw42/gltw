@@ -192,13 +192,13 @@ namespace gltw {
             glAttachShader(shaderID, frag);
 
 			// Set up attribute locations
-			glBindAttribLocation( shaderID, GLTW_ATTRIB_POSITION, "vPosition" );
+			glBindAttribLocation( shaderID, GLTW_ATTRIB_IDX_POSITION, "vPosition" );
 			if( shader == SHADER_PER_VERT_COLOR )
 			{
-				glBindAttribLocation(shaderID, GLTW_ATTRIB_COLOR, "vColor" );
+				glBindAttribLocation(shaderID, GLTW_ATTRIB_IDX_COLOR, "vColor" );
 			}
 			if( shader == SHADER_DEFAULT_LIGHT || shader == SHADER_POINT_LIGHT ) {
-				glBindAttribLocation(shaderID, GLTW_ATTRIB_NORMAL, "vNormal" );
+				glBindAttribLocation(shaderID, GLTW_ATTRIB_IDX_NORMAL, "vNormal" );
 			}
 
             glLinkProgram( shaderID );
