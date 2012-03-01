@@ -12,7 +12,8 @@ namespace gltw {
 
 	enum Attributes {
 		GLTW_ATTRIB_POSITION = 0,
-		GLTW_ATTRIB_COLOR
+		GLTW_ATTRIB_COLOR,
+		GLTW_ATTRIB_NORMAL
 	};
 
 	class GltwState {

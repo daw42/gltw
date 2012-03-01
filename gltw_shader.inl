@@ -36,8 +36,28 @@ namespace gltw {
 			"void main() {"
 			"  FragColor = color;"
 			"}";
-		source[SHADER_DEFAULT_LIGHT][0] = NULL;
-		source[SHADER_DEFAULT_LIGHT][1] = NULL;
+		source[SHADER_DEFAULT_LIGHT][0] = 
+			"#version 150 \n"
+			"in vec3 vPosition;"
+			"in vec3 vNormal;"
+			"uniform mat4 mv;"
+			"uniform mat4 proj;"
+			"uniform vec4 color = vec4(0.9,0.9,0.9,1.0);"
+			"out vec4 fColor;"
+			"void main() {"
+			"   mat3 normMatrix = mat3(mv[0].xyz, mv[1].xyz, mv[2].xyz);"
+			"   vec3 n = normalize( normMatrix * vNormal );"
+			"   vec3 light = vec3(0.0,0.0,1.0);"
+			"   fColor = vec4( color.rgb * max(0.0, dot(n,light)), color.a );"
+			"   gl_Position = proj * mv * vec4(vPosition,1.0);"
+			"}";
+		source[SHADER_DEFAULT_LIGHT][1] = 
+			"#version 150 \n"
+			"in vec4 fColor;"
+			"out vec4 FragColor;"
+			"void main() {"
+			"   FragColor = fColor;"
+			"}";
 		source[SHADER_POINT_LIGHT][0] = NULL;
 		source[SHADER_POINT_LIGHT][1] = NULL;
 		
@@ -146,6 +166,9 @@ namespace gltw {
 			{
 				glBindAttribLocation(shaderID, GLTW_ATTRIB_COLOR, "vColor" );
 			}
+			if( shader == SHADER_DEFAULT_LIGHT || shader == SHADER_POINT_LIGHT ) {
+				glBindAttribLocation(shaderID, GLTW_ATTRIB_NORMAL, "vNormal" );
+			}
 
             glLinkProgram( shaderID );
             if( ! checkLinkStatus(shaderID ) ) {
@@ -201,6 +224,14 @@ namespace gltw {
         GltwState &state = GltwState::state();
         if( state.activeShader != SHADER_NONE ) {
             setUniformMatrix4( state.shaderIDs[state.activeShader], "mv", matrix );
+        }
+    }
+
+	inline void setProjectionMatrix( GLfloat *matrix )
+    {        
+        GltwState &state = GltwState::state();
+        if( state.activeShader != SHADER_NONE ) {
+            setUniformMatrix4( state.shaderIDs[state.activeShader], "proj", matrix );
         }
     }
     
