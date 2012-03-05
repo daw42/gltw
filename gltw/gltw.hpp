@@ -4,6 +4,9 @@
 // The main include file for GLTW
 // Be sure to include your OpenGL headers before including this file
 
+// In case it's needed or wanted
+#define GLTW_PI 3.141592653589793
+
 #include <iostream>
 using std::cerr;
 using std::cout;

@@ -2,7 +2,7 @@
 namespace gltw {
 
 	inline VertexBatch::VertexBatch( GLenum mode, GLuint numVerts, int attribs, GLenum hint ) :
-		drawMode(mode), nVerts(numVerts), bufferUsage(hint), buffersReady(false), attributes(attribs), vaID(0)
+		drawMode(mode), nVerts(numVerts), bufferUsage(hint), attributes(attribs), vaID(0)
 	{
 		for( int i = 0; i < NUM_BUFFERS; i++) bufIDs[i] = 0;
 		if( (attributes & ATTRIB_POSITION) == 0 ) {
@@ -12,7 +12,13 @@ namespace gltw {
 	}
 
 	inline VertexBatch::~VertexBatch() {
-		// TODO delete buffers and clean-up
+		// Delete buffers/vertex arrays safely ignores 0s 
+		glDeleteBuffers(NUM_BUFFERS, bufIDs);
+		glDeleteVertexArrays(1, &vaID);
+	}
+
+	inline bool VertexBatch::attribEnabled( Attribute attrib ) {
+		return (attrib & attributes) != 0;
 	}
 
 	inline void VertexBatch::copyPositionData( GLfloat * data ) {
@@ -55,28 +61,30 @@ namespace gltw {
 	}
 
 	inline bool VertexBatch::isReady() {
-		return  (((attributes & ATTRIB_POSITION) != 0) && (bufIDs[POSITION] != 0 ) ) &&
-			(((attributes & ATTRIB_COLOR) != 0) && (bufIDs[COLOR] != 0 ) ) &&
-			(((attributes & ATTRIB_NORMAL) != 0) && (bufIDs[NORMAL] != 0 ) );
+		return !(
+			( attribEnabled(ATTRIB_POSITION) && bufIDs[POSITION] == 0 ) ||
+			( attribEnabled(ATTRIB_COLOR) && bufIDs[COLOR] == 0 ) ||
+			( attribEnabled(ATTRIB_NORMAL) && bufIDs[NORMAL] == 0 )
+			);
 	}
 
 	inline void VertexBatch::buildVertexArray() {
 		glGenVertexArrays( 1, &vaID );
 		glBindVertexArray(vaID);
 			
-		if( ((attributes & ATTRIB_POSITION) != 0 ) && bufIDs[POSITION] != 0 ) {
+		if( attribEnabled(ATTRIB_POSITION) && bufIDs[POSITION] != 0 ) {
 			glBindBuffer( GL_ARRAY_BUFFER, bufIDs[POSITION] );
 			glVertexAttribPointer( GLTW_ATTRIB_IDX_POSITION, 3, GL_FLOAT, GL_FALSE, 0, 0 );
 			glEnableVertexAttribArray(GLTW_ATTRIB_IDX_POSITION);
 		}
 
-		if( ((attributes & ATTRIB_COLOR) != 0 ) && bufIDs[COLOR] != 0 ) {
+		if( attribEnabled(ATTRIB_COLOR) && bufIDs[COLOR] != 0 ) {
 			glBindBuffer( GL_ARRAY_BUFFER, bufIDs[COLOR] );
 			glVertexAttribPointer( GLTW_ATTRIB_IDX_COLOR, 4, GL_FLOAT, GL_FALSE, 0, 0 );
 			glEnableVertexAttribArray(GLTW_ATTRIB_IDX_COLOR);
 		}
 
-		if( ((attributes & ATTRIB_NORMAL) != 0 ) && bufIDs[NORMAL] != 0 ) {
+		if( attribEnabled(ATTRIB_NORMAL) && bufIDs[NORMAL] != 0 ) {
 			glBindBuffer( GL_ARRAY_BUFFER, bufIDs[NORMAL] );
 			glVertexAttribPointer( GLTW_ATTRIB_IDX_NORMAL, 3, GL_FLOAT, GL_FALSE, 0, 0 );
 			glEnableVertexAttribArray(GLTW_ATTRIB_IDX_NORMAL);
@@ -100,5 +108,5 @@ namespace gltw {
 		glDrawArrays( drawMode, 0, nVerts );
 	}
 
-	inline Mesh * buildSphere() {}
+	inline TriangleMesh * buildSphere() {}
 }
