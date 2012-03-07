@@ -28,7 +28,7 @@ namespace gltw {
 		 * @param numVerts the number of verticies in the batch.  Once constructed, this is fixed and
 		 *         cannot be changed.
 		 * @param attributes the attributes that will be part of this batch, this can be any of the
-		 *        entries in the ::Attribute enum.  Multiple attributes can be specified using a binary
+		 *        entries in the ::Attribute enum.  Multiple attributes can be specified using a bitwise
 		 *        OR operator (|).
 		 * @param usage the buffer usage specifer to be used, defaults to GL_DYNAMIC_DRAW.
 		 */

@@ -5,7 +5,7 @@ namespace gltw {
 		drawMode(mode), nVerts(numVerts), bufferUsage(hint), attributes(attribs), vaID(0)
 	{
 		for( int i = 0; i < NUM_BUFFERS; i++) bufIDs[i] = 0;
-		if( (attributes & ATTRIB_POSITION) == 0 ) {
+		if( !attribEnabled(ATTRIB_POSITION) ) {
 			cerr << "Error in VertexBatch constructor:  VertexBatch must include the position attribute." << endl;
 			exit(1);
 		}
@@ -32,7 +32,7 @@ namespace gltw {
 	}
 
 	inline void VertexBatch::copyNormalData( GLfloat *data ) {
-		if( (attributes & ATTRIB_NORMAL) == 0 ) {
+		if( !attribEnabled(ATTRIB_NORMAL) ) {
 			cerr << "Error in VertexBatch.copyNormalData: the normal attribute was not selected for this VertexBatch." << endl;
 			return;
 		}
@@ -47,7 +47,7 @@ namespace gltw {
 	}
 
 	inline void VertexBatch::copyColorData( GLfloat * data ) {
-		if( (attributes & ATTRIB_COLOR) == 0 ) {
+		if( !attribEnabled(ATTRIB_COLOR) ) {
 			cerr << "Error in VertexBatch.copyColorData: the color attribute was not selected for this VertexBatch." << endl;
 			return;
 		}
