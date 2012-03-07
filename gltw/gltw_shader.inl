@@ -3,7 +3,7 @@ namespace gltw {
 	inline ShaderState::ShaderState() { 
 		for( int i = 0; i < SHADER_NONE; i++ ) shaderIDs[i] = 0; 
 			
-        source[SHADER_FLAT][0] = // gltw::SHADER_FLAT vertex shader
+        source[SHADER_FLAT][0] = 
 			"#version 150 \n"
 			"in vec4 vPosition;"
 			"uniform mat4 mv;"
@@ -11,7 +11,7 @@ namespace gltw {
 			"void main() {"
 			"  gl_Position = proj * mv * vPosition;"
 			"}";
-		source[SHADER_FLAT][1] = // gltw::SHADER_FLAT fragment shader
+		source[SHADER_FLAT][1] = 
 			"#version 150 \n"
 			"uniform vec4 color;"
 			"out vec4 FragColor;"
