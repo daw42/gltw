@@ -76,6 +76,8 @@ namespace gltw {
     /// @privatesection
 	void setUniform4fv( GLuint, const char *, GLfloat * );
 	void setUniform3fv( GLuint progID, const char * name, GLfloat *value );
+	void setUniform4f( GLuint, const char *, GLfloat, GLfloat, GLfloat, GLfloat);
+	void setUniform3f( GLuint progID, const char * name, GLfloat, GLfloat, GLfloat );
 	void setUniformMatrix4( GLuint, const char *, GLfloat *);
     bool compileAndLoadShaderPair( gltw::Shader );
     bool checkCompilationStatus( GLuint );
@@ -120,6 +122,17 @@ namespace gltw {
     void setColor( GLfloat * c);
 
 	/**
+	 * Set the color used by the currently active shader.
+	 * If no shader is active, this does nothing.
+	 *
+	 * @param red the red component of the color
+	 * @param green the green component of the color
+	 * @param blue the blue component of the color.
+	 * @param alpha the alpha component of the color.
+	 */
+    void setColor( GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
+
+	/**
 	 * Set the position of the light (in eye coordinates) used by the currently active shader.
 	 * If no shader is active, or the shader does not support this uniform,
 	 * this function does nothing.
@@ -128,6 +141,17 @@ namespace gltw {
 	 *    as {x, y, z}
 	 */
     void setLightPosition( GLfloat *pos );
+
+	/**
+	 * Set the position of the light (in eye coordinates) used by the currently active shader.
+	 * If no shader is active, or the shader does not support this uniform,
+	 * this function does nothing.
+	 *
+	 * @param x the x coordinate of the position
+	 * @param y the y coordinate of the position
+	 * @param z the z coordinate of the position
+	 */
+    void setLightPosition( GLfloat x, GLfloat y, GLfloat z );
 }
 
 #include "gltw_shader.inl"

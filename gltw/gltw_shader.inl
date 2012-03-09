@@ -141,10 +141,28 @@ namespace gltw {
         }
     }
 
+	inline void setUniform4f( GLuint progID, const char * name, GLfloat x, GLfloat y, GLfloat z, GLfloat w ) {
+        GLint location = glGetUniformLocation(progID, name);
+        if( location != -1 ) { 
+            glUniform4f( location, x, y, z, w );
+        } else {
+            cerr << "Unable to set uniform \"" << name << "\"" << endl;
+        }
+    }
+
 	inline void setUniform3fv( GLuint progID, const char * name, GLfloat *value ) {
         GLint location = glGetUniformLocation(progID, name);
         if( location != -1 ) { 
             glUniform3fv( location, 1, value );
+        } else {
+            cerr << "Unable to set uniform \"" << name << "\"" << endl;
+        }
+    }
+
+	inline void setUniform3f( GLuint progID, const char * name, GLfloat x, GLfloat y, GLfloat z ) {
+        GLint location = glGetUniformLocation(progID, name);
+        if( location != -1 ) { 
+            glUniform3f( location, x, y, z );
         } else {
             cerr << "Unable to set uniform \"" << name << "\"" << endl;
         }
@@ -274,12 +292,28 @@ namespace gltw {
             setUniform4fv( state.shaderIDs[state.activeShader], "color", color);
         }
     }
+	
+	inline void setColor( GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) {
+		ShaderState &state = ShaderState::state();
+		if( state.activeShader == SHADER_FLAT || state.activeShader == SHADER_DEFAULT_LIGHT ||
+			state.activeShader == SHADER_POINT_LIGHT ) {
+            setUniform4f( state.shaderIDs[state.activeShader], "color", red, green, blue, alpha);
+        }
+	}
 
 	inline void setLightPosition( GLfloat *pos )
 	{
 		ShaderState &state = ShaderState::state();
 		if( state.activeShader == SHADER_POINT_LIGHT ) {
             setUniform3fv( state.shaderIDs[state.activeShader], "lightPos", pos);
+        }
+	}
+
+	inline void setLightPosition( GLfloat x, GLfloat y, GLfloat z )
+	{
+		ShaderState &state = ShaderState::state();
+		if( state.activeShader == SHADER_POINT_LIGHT ) {
+            setUniform3f( state.shaderIDs[state.activeShader], "lightPos", x, y, z);
         }
 	}
 }
