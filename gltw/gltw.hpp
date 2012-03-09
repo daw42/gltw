@@ -15,6 +15,7 @@ using std::endl;
 /** The main namespace for GLTW */
 namespace gltw { }
 
+#include "gltw_util.hpp"
 #include "gltw_shader.hpp"
 #include "gltw_batch.hpp"
 

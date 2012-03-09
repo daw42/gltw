@@ -35,7 +35,7 @@ namespace gltw {
 		VertexBatch( GLenum primitiveType, GLuint numVerts, int attributes = ATTRIB_POSITION, GLenum usage = GL_DYNAMIC_DRAW );
 
 		/** Deletes the OpenGL buffer objects for this VertexBatch */
-		~VertexBatch();
+		virtual ~VertexBatch();
 
 		/** Returns whether or not this VertexBatch object
 		 * is ready to be drawn.  If this returns false, a call to the
@@ -82,7 +82,7 @@ namespace gltw {
 
 	protected:
 		enum Buffer { POSITION, NORMAL, COLOR, TEXCOORD, ELEMENT, NUM_BUFFERS };
-		void buildVertexArray();
+		virtual void buildVertexArray();
 		bool attribEnabled( Attribute attrib );
 
 		int attributes;
@@ -93,23 +93,66 @@ namespace gltw {
 		GLuint bufIDs[NUM_BUFFERS];
 	};
 
+	/**
+	 * Implements a mesh of triangles using vertex buffers.  This class extends
+	 * VertexBatch by including element arrays, and allowing only GL_TRIANGLES.
+	 * This is intended to be used for meshes that do not change over time.
+	 */
 	class TriangleMesh : public VertexBatch {
 	public:
+		/**
+		 * Construct a TriangleMesh object.   This constructor makes no OpenGL calls.
+		 *
+		 * @param numVerts the number of verticies in the mesh.  Once constructed, this is fixed and
+		 *         cannot be changed.
+		 * @param numElements the number of element indexes in the mesh.  Once constructed, this is fixed
+		 *          and cannot be changed.
+		 * @param attributes the attributes that will be part of this batch, this can be any of the
+		 *        entries in the ::Attribute enum.  Multiple attributes can be specified using a bitwise
+		 *        OR operator (|).
+		 * @param usage the buffer usage specifer to be used, defaults to GL_STATIC_DRAW.
+		 */
 		TriangleMesh( GLuint numVerts, GLuint numElements, int attributes = ATTRIB_POSITION | ATTRIB_NORMAL, GLenum usage = GL_STATIC_DRAW );
+		
+		/**
+		 * Deletes the vertex buffer objects for this batch.
+		 */
 		~TriangleMesh();
 
-		void copyElementData( GLuint * );
+		/**
+		 * Copy the array of element index data to the buffer contained within this TriangleMesh,
+		 * creating the buffer if needed.  The element index data is assumed to be one GLuint
+		 * per index.
+		 *
+		 * @param data a pointer to nElements values, where nElements is the number of elements
+		 *        provided at the time this object was constructed.
+		 */
+		void copyElementData( GLuint * data );
 
+		/** Draw this TriangleMesh.  This will do nothing and print an error message if
+		 * the buffers are not ready.  Make sure to fill the buffers via one of the
+		 * copy*Data methods prior to drawing.
+		 */
 		virtual void draw();
 
 	private:
+		virtual void buildVertexArray();
+
 		GLuint nElements;
 	};
 
 	/// @defgroup 3Dshapes Functions for building 3D shapes
 	/// @{
-	/** Not implemented yet */
-	TriangleMesh* buildSphere( );
+	/** 
+	 * Create a TriangleMesh that describes a torus shape.  The torus is defined centered
+	 * at the origin in the x-y plane.  
+	 *
+	 * @param outerRadius the radius from the origin to the center of the "ring"
+	 * @param innerRadius the internal radius of the "ring" of the donut
+	 * @param nSides the number of sides per ring 
+	 * @param nRings the number of rings around the donut
+	 */
+	TriangleMesh* buildTorus( GLfloat outerRadius, GLfloat innerRadius, GLint nSides, GLint nRings );
 	/// @}
 }
 
