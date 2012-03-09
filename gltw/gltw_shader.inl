@@ -101,13 +101,13 @@ namespace gltw {
                 exit(1);
         }
         
+        ShaderState::state().activeShader = shader;
         if( shader == SHADER_NONE ) {
             glUseProgram(0);
         } else {
             glUseProgram(shaderID);
             initUniforms();
         }
-		ShaderState::state().activeShader = shader;
     }
     
     inline void initUniforms() {
