@@ -113,11 +113,6 @@ namespace gltw {
 		 * @param usage the buffer usage specifer to be used, defaults to GL_STATIC_DRAW.
 		 */
 		TriangleMesh( GLuint numVerts, GLuint numElements, int attributes = ATTRIB_POSITION | ATTRIB_NORMAL, GLenum usage = GL_STATIC_DRAW );
-		
-		/**
-		 * Deletes the vertex buffer objects for this batch.
-		 */
-		~TriangleMesh();
 
 		/**
 		 * Copy the array of element index data to the buffer contained within this TriangleMesh,
@@ -145,7 +140,8 @@ namespace gltw {
 	/// @{
 	/** 
 	 * Create a TriangleMesh that describes a torus shape.  The torus is defined centered
-	 * at the origin in the x-y plane.  
+	 * at the origin in the x-y plane.  It is the caller's responsibility to delete the TriangleMesh
+	 * object when finished. 
 	 *
 	 * @param outerRadius the radius from the origin to the center of the "ring"
 	 * @param innerRadius the internal radius of the "ring" of the donut
@@ -153,6 +149,13 @@ namespace gltw {
 	 * @param nRings the number of rings around the donut
 	 */
 	TriangleMesh* buildTorus( GLfloat outerRadius, GLfloat innerRadius, GLint nSides, GLint nRings );
+	
+	/**
+	 * Create a TriangleMesh that describes a cube.  The cube is centered at the origin,
+	 * with a side length of 1.  It is the caller's responsibility to delete the TriangleMesh
+	 * object when finished.
+	 */
+	TriangleMesh* buildCube();
 	/// @}
 }
 
