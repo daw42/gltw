@@ -14,9 +14,26 @@ namespace gltw {
 	};
 
 	/**
-	 * The VertexBatch is a class that manages a set of buffer object containing
+	 * <p>The VertexBatch is a class that manages a set of buffer object containing
 	 * vertex data.  A VertexBatch contains one buffer for each attribute.  The
-	 * available attributes must be selected via the constructor.
+	 * available attributes must be selected via the constructor.  Before drawing
+	 * the VertexBatch, one must copy the vertex data into the buffers by using one
+	 * or more of the copy*Data functions.</p>
+	 *
+	 * <p>An example of the use of this class for drawing a triangle follows.</p>
+	 *
+	 * <p><code>
+	 *    // Initialization (need only be done once)<br />
+	 *    GLfloat verts[] = { -0.5f, -0.5f, 0.0f, 0.5f, -0.5f, 0.0f, 0.0f, 0.5f, 0.0f };<br />
+	 *    VertexBatch myBatch(GL_TRIANGLES, 3);<br />
+	 *    myBatch.copyVertexData(verts);<br />
+	 *    <br />
+	 *    // Within the draw function<br />
+	 *    myBatch.draw();<br />
+	 *    </code></p>
+	 *  
+	 *  <p> Data can be copied into the VertexBatch at any time, but must be done at
+	 *   least once before drawing.</p>
 	 */
 	class VertexBatch : public NonCopyable {
 	public:

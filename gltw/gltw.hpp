@@ -11,6 +11,7 @@
 using std::cerr;
 using std::cout;
 using std::endl;
+#include <cmath>
 
 /** The main namespace for GLTW */
 namespace gltw { }
