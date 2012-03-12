@@ -228,6 +228,78 @@ namespace gltw {
 		return mesh;
 	}
 
+	inline TriangleMesh * buildCylinder( float base, float top, float height, int slices, int stacks )
+	{
+		GLuint elements = slices * stacks * 6;
+		GLuint nVerts = slices * (stacks + 1);
+
+		// Allocate temporary space for the vertex data
+		GLfloat * verts;
+		GLfloat * normals;
+		GLuint * el;
+		verts = new GLfloat[ nVerts * 3 ];
+		normals = new GLfloat[ nVerts * 3 ];
+		el = new GLuint[ elements ];
+
+		// Generate the points
+		GLuint vIdx = 0;
+		GLfloat x, y, z, nx, ny, nlen;
+		float sliceFac = 2.0 * GLTW_PI / slices;
+		float stackFac = height / stacks;
+		float angle = 0.0f, alpha = 0.0f, r = 0.0f;
+		float normZ = (base - top) / height;
+		for( int i = 0; i <= stacks ; i++ ) {
+			z = i * stackFac;
+			alpha = z / height;
+			r = (1 - alpha) * base + alpha * top;
+			for( int j = 0; j < slices; j++ ) {
+				angle = sliceFac * j;
+				x = nx = cosf(angle);
+				y = ny = sinf(angle);
+				nlen = sqrt(nx * nx + ny * ny + z * z);
+				x *= r;
+				y *= r;
+				verts[vIdx] = x;
+				verts[vIdx+1] = y;
+				verts[vIdx+2] = z;
+				normals[vIdx] = nx / nlen;
+				normals[vIdx+1] = ny / nlen;
+				normals[vIdx+2] = z / nlen;
+				vIdx += 3;
+			}
+		}
+
+		// Generate the element indexes for triangles
+		GLuint elIdx = 0, stackStart, nextStackStart;
+		for( int i = 0; i < stacks; i++ ) {
+			stackStart = i * slices;
+			nextStackStart = (i+1) * slices;
+			for( int j = 0; j < slices; j++ ) {
+				// Triangle one
+				el[elIdx] = stackStart + j;
+				el[elIdx+1] = nextStackStart + j;
+				el[elIdx+2] = nextStackStart + ((j+1) % slices);
+				// Triangle 2
+				el[elIdx+3] = stackStart + j;
+				el[elIdx+4] = nextStackStart + ((j+1) % slices);
+				el[elIdx+5] = stackStart + ((j+1) % slices);
+				elIdx += 6;
+			}
+		}
+
+		TriangleMesh *mesh = new TriangleMesh(nVerts, elements);
+		mesh->copyPositionData(verts);
+		mesh->copyNormalData(normals);
+		mesh->copyElementData(el);
+
+		// Delete the local arrays, we don't need them anymore.
+		delete [] verts;
+		delete [] normals;
+		delete [] el;
+
+		return mesh;
+	}
+
 	inline TriangleMesh * buildCube() 
 	{
 		float side = 1.0f;
@@ -276,6 +348,77 @@ namespace gltw {
 		mesh->copyPositionData(v);
 		mesh->copyNormalData(n);
 		mesh->copyElementData(el);
+
+		return mesh;
+	}
+
+	inline TriangleMesh * buildSphere(GLfloat radius, int slices, int stacks)
+	{
+		GLuint nVerts = slices * (stacks + 1);
+		GLuint elements = (slices * 2 * (stacks-1) ) * 3;
+
+		// Allocate the temporary arrays for the vertex data
+		GLfloat *verts = new GLfloat[nVerts*3];
+		GLfloat *norms = new GLfloat[nVerts*3];
+		GLuint * el = new GLuint[elements];
+
+		// Generate positions and normals
+		GLfloat theta, phi;
+		GLfloat thetaFac = (2.0 * GLTW_PI) / slices;
+		GLfloat phiFac = GLTW_PI / stacks;
+		GLfloat nx, ny, nz;
+		GLuint idx = 0;
+		for( int i = 0; i < slices; i++ ) {
+			theta = i * thetaFac;
+			for( int j = 0; j <= stacks; j++ ) {
+				phi = j * phiFac;
+				nx = sinf(phi) * cosf(theta);
+				ny = sinf(phi) * sinf(theta);
+				nz = cosf(phi);
+				verts[idx] = radius * nx; verts[idx+1] = radius * ny; verts[idx+2] = radius * nz;
+				norms[idx] = nx; norms[idx+1] = ny; norms[idx+2] = nz;
+				idx += 3;
+			}
+		}
+
+		// Generate the element list
+		idx = 0;
+		for( int i = 0; i < slices; i++ ) {
+			GLuint stackStart = i * (stacks + 1);
+			GLuint nextStackStart = ((i+1) % slices) * (stacks+1);
+			for( int j = 0; j < stacks; j++ ) {
+				if( j == 0 ) {
+					el[idx] = stackStart;
+					el[idx+1] = stackStart + 1;
+					el[idx+2] = nextStackStart + 1;
+					idx += 3;
+				} else if( j == stacks - 1) {
+					el[idx] = stackStart + j;
+					el[idx+1] = stackStart + j + 1;
+					el[idx+2] = nextStackStart + j;
+					idx += 3;
+				} else {
+					el[idx] = stackStart + j;
+					el[idx+1] = stackStart + j + 1;
+					el[idx+2] = nextStackStart + j + 1;
+					el[idx+3] = nextStackStart + j;
+					el[idx+4] = stackStart + j;
+					el[idx+5] = nextStackStart + j + 1;
+					idx += 6;
+				}
+			}
+		}
+
+
+		TriangleMesh * mesh = new TriangleMesh(nVerts,elements);
+		mesh->copyPositionData(verts);
+		mesh->copyNormalData(norms);
+		mesh->copyElementData(el);
+
+		// Delete our vertex data, we don't need it anymore
+		delete [] verts;
+		delete [] norms;
+		delete [] el;
 
 		return mesh;
 	}

@@ -173,6 +173,34 @@ namespace gltw {
 	 * object when finished.
 	 */
 	TriangleMesh* buildCube();
+
+	/**
+	 * Create a TriangleMesh that describes a cylinder.  The cylinder is aligned along the z
+	 * axis and may have a different radius at each end.  If one of the radii is zero, the 
+	 * result is a cone.  
+	 *
+	 * @param base the radius of the base of the cylinder (at z = 0)
+     * @param top the radius of the top of the cylinder (at z = height)
+     * @param height the height of the cylinder (extent in the z direction)
+     * @param slices the number of subdivisions along the z axis.  This must be
+     *               greater than or equal to one.
+     * @param stacks the number of subdivisions around the z axis.  This must be
+     *                 greater than or equal to three.
+	 */
+	TriangleMesh * buildCylinder( float base, float top, float height, int slices, int stacks );
+
+	/**
+      * Create a TriangleMesh describing a Sphere.  The
+      * sphere is oriented along the z axis.  The poles are at z = radius
+      * and z = -radius.
+      *
+      * @param radius the radius of the sphere
+      * @param slices the number of subdivisions along the z axis (like lines of
+      *               longitude).  This must be greater than or equal to three.
+      * @param stacks the number of subdivisions around the z axis (like lines of
+      *               latitude).  This must be greater than or equal to three.
+      */
+	TriangleMesh * buildSphere(GLfloat radius, int slices, int stacks);
 	/// @}
 }
 
