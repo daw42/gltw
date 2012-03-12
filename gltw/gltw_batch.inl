@@ -256,7 +256,7 @@ namespace gltw {
 				angle = sliceFac * j;
 				x = nx = cosf(angle);
 				y = ny = sinf(angle);
-				nlen = sqrt(nx * nx + ny * ny + z * z);
+				nlen = sqrt(nx * nx + ny * ny + normZ * normZ);
 				x *= r;
 				y *= r;
 				verts[vIdx] = x;
@@ -264,7 +264,7 @@ namespace gltw {
 				verts[vIdx+2] = z;
 				normals[vIdx] = nx / nlen;
 				normals[vIdx+1] = ny / nlen;
-				normals[vIdx+2] = z / nlen;
+				normals[vIdx+2] = normZ / nlen;
 				vIdx += 3;
 			}
 		}
