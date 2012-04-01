@@ -422,4 +422,66 @@ namespace gltw {
 
 		return mesh;
 	}
+
+	inline TriangleMesh * buildPlane(float xsize, float zsize, int xdivs, int zdivs)
+	{
+		if( xdivs < 1 ) xdivs = 1;
+		if( zdivs < 1 ) zdivs = 1;
+
+		int faces = xdivs * zdivs;
+		
+		float * v = new float[3 * (xdivs + 1) * (zdivs + 1)];
+		float * n = new float[3 * (xdivs + 1) * (zdivs + 1)];
+		GLuint * el = new GLuint[6 * xdivs * zdivs];
+
+		float x2 = xsize / 2.0f;
+		float z2 = zsize / 2.0f;
+		float iFactor = (float)zsize / zdivs;
+		float jFactor = (float)xsize / xdivs;
+		float x, z;
+		int vidx = 0;
+		for( int i = 0; i <= zdivs; i++ ) {
+			z = iFactor * i - z2;
+			for( int j = 0; j <= xdivs; j++ ) {
+				x = jFactor * j - x2;
+				v[vidx] = x;
+				v[vidx+1] = 0.0f;
+				v[vidx+2] = z;
+				n[vidx] = 0.0f;
+				n[vidx+1] = 1.0f;
+				n[vidx+2] = 0.0f;
+				vidx += 3;
+			}
+		}
+
+		GLuint rowStart, nextRowStart;
+		int idx = 0;
+		for( int i = 0; i < zdivs; i++ ) {
+			rowStart = i * (xdivs+1);
+			nextRowStart = (i+1) * (xdivs+1);
+			for( int j = 0; j < xdivs; j++ ) {
+				el[idx] = rowStart + j;
+				el[idx+1] = nextRowStart + j;
+				el[idx+2] = nextRowStart + j + 1;
+				el[idx+3] = rowStart + j;
+				el[idx+4] = nextRowStart + j + 1;
+				el[idx+5] = rowStart + j + 1;
+				idx += 6;
+			}
+		}
+
+		int verts = (xdivs+1) * (zdivs+1);
+		int elements = 6 * xdivs * zdivs;
+		TriangleMesh * mesh = new TriangleMesh(verts, elements);
+
+		mesh->copyPositionData(v);
+		mesh->copyNormalData(n);
+		mesh->copyElementData(el);
+
+		delete [] v;
+		delete [] n;
+		delete [] el;
+
+		return mesh;
+	}
 }

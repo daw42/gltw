@@ -201,6 +201,19 @@ namespace gltw {
       *               latitude).  This must be greater than or equal to three.
       */
 	TriangleMesh * buildSphere(GLfloat radius, int slices, int stacks);
+
+	/**
+      * Create a TriangleMesh describing a rectangular portion of a plane.  The
+      * plane is located in the x-z plane, centered at the origin.
+      *
+      * @param xsize the size of the plane in the x direction
+	  * @param zsize the size of the plane in the z direction
+      * @param xDivisions the number of subdivisions along the x axis.
+	  *                   This must be greater than or equal to one.
+      * @param zDivisions the number of subdivisions along the z axis 
+	  *                   This must be greater than or equal to one.
+      */
+	TriangleMesh * buildPlane(float xsize, float zsize, int xDivisions, int zDivisions);
 	/// @}
 }
 
