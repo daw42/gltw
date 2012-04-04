@@ -1,4 +1,10 @@
 
+#include <fstream>
+using std::ifstream;
+using std::ios;
+#include <sstream>
+using std::ostringstream;
+
 namespace gltw {
 	inline ShaderState::ShaderState() { 
 		for( int i = 0; i < SHADER_NONE; i++ ) shaderIDs[i] = 0; 
@@ -97,7 +103,7 @@ namespace gltw {
         
         if( shaderID == 0 && shader != SHADER_NONE )
         {
-            if( ! compileAndLoadShaderPair( shader ) )
+            if( ! compileAndLinkStockShader( shader ) )
                 exit(1);
         }
         
@@ -177,60 +183,106 @@ namespace gltw {
         }
     }
     
-    inline bool compileAndLoadShaderPair( gltw::Shader shader )
+    inline bool compileAndLinkStockShader( gltw::Shader shader )
     {
 		GLuint &shaderID = ShaderState::state().shaderIDs[ shader ];
         if( shaderID == 0 ) 
         {
-            // Create the shader objects
-            GLuint vert = glCreateShader(GL_VERTEX_SHADER);
-            GLuint frag = glCreateShader(GL_FRAGMENT_SHADER);
-            
-            // Load the shader source
-            glShaderSource(vert, 1, &ShaderState::state().source[shader][0], NULL);
-            glShaderSource(frag, 1, &ShaderState::state().source[shader][1], NULL);
-            
-            // Compile
-            glCompileShader(vert);
-            if( ! checkCompilationStatus(vert) ) {
-                glDeleteShader(vert);
-                glDeleteShader(frag);
-                return false;
-            }
-            glCompileShader(frag);
-            if( ! checkCompilationStatus(frag) ) {
-                glDeleteShader(vert);
-                glDeleteShader(frag);
-                return false;
-            }
-            
-            // Create the program object
-            shaderID = glCreateProgram();
-            glAttachShader(shaderID, vert);
-            glAttachShader(shaderID, frag);
+			shaderID = compileAndLinkShaderPair(ShaderState::state().source[shader][0],
+				ShaderState::state().source[shader][1]);
 
-			// Set up attribute locations
-			glBindAttribLocation( shaderID, GLTW_ATTRIB_IDX_POSITION, "vPosition" );
-			if( shader == SHADER_PER_VERT_COLOR )
+			if( shaderID != 0 )
 			{
-				glBindAttribLocation(shaderID, GLTW_ATTRIB_IDX_COLOR, "vColor" );
+				// Set up attribute locations
+				glBindAttribLocation( shaderID, GLTW_ATTRIB_IDX_POSITION, "vPosition" );
+				if( shader == SHADER_PER_VERT_COLOR )
+				{
+					glBindAttribLocation(shaderID, GLTW_ATTRIB_IDX_COLOR, "vColor" );
+				}
+				if( shader == SHADER_DEFAULT_LIGHT || shader == SHADER_POINT_LIGHT ) {
+					glBindAttribLocation(shaderID, GLTW_ATTRIB_IDX_NORMAL, "vNormal" );
+				}
+				// Re-link shader
+				if( ! linkProgram( shaderID ) ) {
+					glDeleteProgram(shaderID);
+					shaderID = 0;
+					return false;
+				}
 			}
-			if( shader == SHADER_DEFAULT_LIGHT || shader == SHADER_POINT_LIGHT ) {
-				glBindAttribLocation(shaderID, GLTW_ATTRIB_IDX_NORMAL, "vNormal" );
-			}
-
-            glLinkProgram( shaderID );
-            if( ! checkLinkStatus(shaderID ) ) {
-                glDeleteShader(vert);
-                glDeleteShader(frag);
-                glDeleteProgram(shaderID);
-                shaderID = 0;
-                return false;
-            }
         }
 
         return true;
     }
+
+	inline GLuint compileAndLinkShaderPair( const char *vertex, const char *fragment )
+	{
+		GLuint shaderID = 0;
+
+		// Create the shader objects
+        GLuint vert = glCreateShader(GL_VERTEX_SHADER);
+        GLuint frag = glCreateShader(GL_FRAGMENT_SHADER);
+            
+        // Load the shader source
+        glShaderSource(vert, 1, &vertex, NULL);
+        glShaderSource(frag, 1, &fragment, NULL);
+            
+        // Compile
+        glCompileShader(vert);
+        if( ! checkCompilationStatus(vert) ) {
+            glDeleteShader(vert);
+            glDeleteShader(frag);
+            return 0;
+        }
+        glCompileShader(frag);
+        if( ! checkCompilationStatus(frag) ) {
+            glDeleteShader(vert);
+            glDeleteShader(frag);
+            return 0;
+        }
+            
+        // Create the program object
+        shaderID = glCreateProgram();
+        glAttachShader(shaderID, vert);
+        glAttachShader(shaderID, frag);
+
+        if( ! linkProgram(shaderID ) ) {
+            glDeleteShader(vert);
+            glDeleteShader(frag);
+            glDeleteProgram(shaderID);
+            shaderID = 0;
+        }
+
+		return shaderID;
+	}
+
+	inline GLuint compileAndLinkShaderPairFromFile( const char *vertexFileName, const char *fragmentFileName )
+	{
+		 string vShaderCode, fShaderCode;
+		 if( !getFileContents( vertexFileName, vShaderCode) ) return 0;
+		 if( !getFileContents( fragmentFileName, fShaderCode) ) return 0;
+
+		 return compileAndLinkShaderPair(vShaderCode.c_str(), fShaderCode.c_str());
+	}
+
+	inline bool getFileContents( const char * fileName, string &str /*out*/ )
+	{
+		ifstream inFile( fileName, ios::in );
+		if( !inFile ) return false;
+		ostringstream code;
+		while( inFile.good() ) {
+			int c = inFile.get();
+			if( !inFile.eof() ) code << (char)c;
+		}
+		inFile.close();
+		str = code.str();
+		return true;
+	}
+
+	inline bool linkProgram( GLuint id ) 
+	{
+		glLinkProgram( id );
+        return checkLinkStatus(id);
+	}
     
     inline bool checkCompilationStatus( GLuint shaderID )
     {

@@ -1,6 +1,9 @@
 #ifndef __gltw_shader_hpp
 #define __gltw_shader_hpp
 
+#include <string>
+using std::string;
+
 namespace gltw {
 	/** The supported shaders */
 	enum Shader {
@@ -74,16 +77,87 @@ namespace gltw {
 	};
 
     /// @privatesection
-	void setUniform4fv( GLuint, const char *, GLfloat * );
-	void setUniform3fv( GLuint progID, const char * name, GLfloat *value );
-	void setUniform4f( GLuint, const char *, GLfloat, GLfloat, GLfloat, GLfloat);
-	void setUniform3f( GLuint progID, const char * name, GLfloat, GLfloat, GLfloat );
-	void setUniformMatrix4( GLuint, const char *, GLfloat *);
-    bool compileAndLoadShaderPair( gltw::Shader );
+    bool compileAndLinkStockShader( gltw::Shader );
+	bool getFileContents( const char * fileName, string &str /*out*/ );
     bool checkCompilationStatus( GLuint );
     bool checkLinkStatus( GLuint );
     void initUniforms();
 	/// @publicsection
+
+	/**
+	 * Set a uniform vec4 variable
+	 *
+	 * @param prog the shader program ID
+	 * @param name the name of the uniform variable
+	 * @param value a pointer to 4 GLfloat values
+	 */
+	void setUniform4fv( GLuint prog, const char * name, GLfloat * value );
+	/**
+	 * Set a uniform vec3 variable
+	 *
+	 * @param prog the shader program ID
+	 * @param name the name of the uniform variable
+	 * @param value a pointer to 3 GLfloat values
+	 */
+	void setUniform3fv( GLuint prog, const char * name, GLfloat * value );
+	/**
+	 * Set a uniform vec4 variable
+	 *
+	 * @param prog the shader program ID
+	 * @param name the name of the uniform variable
+	 * @param x the x/r component
+	 * @param y the y/g component
+	 * @param z the z/b component
+	 * @param w the w/a component
+	 */
+	void setUniform4f( GLuint prog, const char * name , GLfloat x, GLfloat y, GLfloat z, GLfloat w);
+	/**
+	 * Set a uniform vec3 variable
+	 *
+	 * @param prog the shader program ID
+	 * @param name the name of the uniform variable
+	 * @param x the x/r component
+	 * @param y the y/g component
+	 * @param z the z/b component
+	 */
+	void setUniform3f( GLuint prog, const char * name, GLfloat x, GLfloat y, GLfloat z);
+	/**
+	 * Set a uniform mat4 variable
+	 *
+	 * @param prog the shader program ID
+	 * @param name the name of the uniform variable
+	 * @param value a pointer to 16 GLfloat values (column-major order)
+	 */
+	void setUniformMatrix4( GLuint prog, const char * name, GLfloat * value);
+
+	/**
+	 * Attempts to link the shader program
+	 *
+	 * @param id the id of the shader program (all shaders within the shader 
+	 *   program must already be compiled and attached)
+	 * @return true if the linking is successful.
+	 */
+	bool linkProgram( GLuint id );
+
+	/**
+	 * Compile and link the vertex and fragment shaders contained in the 
+	 * strings provided.
+	 *
+	 * @param vertex the vertex shader code (null terminated)
+	 * @param fragment the fragment shader code (null terminated)
+	 * @return the ID of the shader program or 0 if the program failed to compile or link.
+	 */
+	GLuint compileAndLinkShaderPair( const char *vertex, const char *fragment );
+
+	/**
+	 * Compile and link the vertex and fragment shaders contained in the 
+	 * files with the provided file names.
+	 *
+	 * @param vertexFileName the name of the file containing the vertex shader code
+	 * @param fragmentFileName the name of the file containing the fragment shader code
+	 * @return the ID of the shader program or 0 if the program failed to compile or link.
+	 */
+	GLuint compileAndLinkShaderPairFromFile( const char *vertexFileName, const char *fragmentFileName );
 
 	/**
 	 * Compile and link (if necessary) the given shader and make it
