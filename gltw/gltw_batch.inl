@@ -2,7 +2,7 @@
 namespace gltw {
 
 	inline VertexBatch::VertexBatch( GLenum mode, GLuint numVerts, int attribs, GLenum hint ) :
-		drawMode(mode), nVerts(numVerts), bufferUsage(hint), attributes(attribs), vaID(0)
+		attributes(attribs), nVerts(numVerts),  bufferUsage(hint), drawMode(mode), vaID(0)
 	{
 		for( int i = 0; i < NUM_BUFFERS; i++) bufIDs[i] = 0;
 		if( !attribEnabled(ATTRIB_POSITION) ) {
@@ -428,8 +428,6 @@ namespace gltw {
 		if( xdivs < 1 ) xdivs = 1;
 		if( zdivs < 1 ) zdivs = 1;
 
-		int faces = xdivs * zdivs;
-		
 		float * v = new float[3 * (xdivs + 1) * (zdivs + 1)];
 		float * n = new float[3 * (xdivs + 1) * (zdivs + 1)];
 		GLuint * el = new GLuint[6 * xdivs * zdivs];
