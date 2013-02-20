@@ -140,6 +140,25 @@ namespace gltw {
 	bool linkProgram( GLuint id );
 
 	/**
+	 * Deletes a shader program.  Deletes each attached shader and
+	 * the program object.
+	 * @param id the id of the shader program.
+	 */
+	void deleteProgram( GLuint id );
+
+	/**
+	 * Compile the vertex and fragment shaders contained in the
+	 * strings provided.  The files are compiled and attached
+	 * to a shader program.  The ID of the shader program is returned (or 0 on error).
+	 * The program must be linked (using glLinkProgram or gltw::linkProgram) prior to use.
+	 *
+	 * @param vertex the vertex shader code (null terminated)
+	 * @param fragment the fragment shader code (null terminated)
+	 * @return the ID of the shader program or 0 if the program failed to compile or link.
+	 */
+	GLuint compileShaderPair( const char *vertex, const char *fragment );
+
+	/**
 	 * Compile and link the vertex and fragment shaders contained in the 
 	 * strings provided.
 	 *
@@ -158,6 +177,18 @@ namespace gltw {
 	 * @return the ID of the shader program or 0 if the program failed to compile or link.
 	 */
 	GLuint compileAndLinkShaderPairFromFile( const char *vertexFileName, const char *fragmentFileName );
+
+	/**
+	 * Compile the vertex and fragment shaders contained in the
+	 * files with the provided file names.  The files are compiled and attached
+	 * to a shader program.  The ID of the shader program is returned (or 0 on error).
+	 * The program must be linked (using gltw::linkProgram or glLinkProgram) prior to use.
+	 *
+	 * @param vertexFileName the name of the file containing the vertex shader code
+	 * @param fragmentFileName the name of the file containing the fragment shader code
+	 * @return the ID of the shader program or 0 if the program failed to compile or link.
+	 */
+	GLuint compileShaderPairFromFile( const char *vertexFileName, const char *fragmentFileName );
 
 	/**
 	 * Compile and link (if necessary) the given shader and make it

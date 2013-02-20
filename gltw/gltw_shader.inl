@@ -182,13 +182,33 @@ namespace gltw {
             cerr << "Unable to set uniform \"" << name << "\"" << endl;
         }
     }
+
+	inline void deleteProgram( GLuint id )
+	{
+		// Query the number of attached shaders
+		GLint numShaders = 0;
+		glGetProgramiv( id, GL_ATTACHED_SHADERS, &numShaders);
+
+		// Get the shader names
+		GLuint * shaderNames = new GLuint[numShaders];
+		glGetAttachedShaders(id, numShaders, NULL, shaderNames);
+
+		// Delete the shaders
+		for( int i = 0; i < numShaders; i++ )
+			glDeleteShader(shaderNames[i]);
+
+		// Delete the program
+		glDeleteProgram(id);
+
+		delete [] shaderNames;
+	}
     
     inline bool compileAndLinkStockShader( gltw::Shader shader )
     {
 		GLuint &shaderID = ShaderState::state().shaderIDs[ shader ];
         if( shaderID == 0 ) 
         {
-			shaderID = compileAndLinkShaderPair(ShaderState::state().source[shader][0],
+			shaderID = compileShaderPair(ShaderState::state().source[shader][0],
 				ShaderState::state().source[shader][1]);
 
 			if( shaderID != 0 )
@@ -202,9 +222,9 @@ namespace gltw {
 				if( shader == SHADER_DEFAULT_LIGHT || shader == SHADER_POINT_LIGHT ) {
 					glBindAttribLocation(shaderID, GLTW_ATTRIB_IDX_NORMAL, "vNormal" );
 				}
-				// Re-link shader
+				// Link shader
 				if( ! linkProgram( shaderID ) ) {
-					glDeleteProgram(shaderID);
+					gltw::deleteProgram(shaderID);
 					shaderID = 0;
 					return false;
 				}
@@ -214,9 +234,9 @@ namespace gltw {
         return true;
     }
 
-	inline GLuint compileAndLinkShaderPair( const char *vertex, const char *fragment )
-	{
-		GLuint shaderID = 0;
+    inline GLuint compileShaderPair( const char * vertex, const char * fragment )
+    {
+		GLuint programID = 0;
 
 		// Create the shader objects
         GLuint vert = glCreateShader(GL_VERTEX_SHADER);
@@ -241,18 +261,25 @@ namespace gltw {
         }
             
         // Create the program object
-        shaderID = glCreateProgram();
-        glAttachShader(shaderID, vert);
-        glAttachShader(shaderID, frag);
+        programID = glCreateProgram();
+        glAttachShader(programID, vert);
+        glAttachShader(programID, frag);
 
-        if( ! linkProgram(shaderID ) ) {
-            glDeleteShader(vert);
-            glDeleteShader(frag);
-            glDeleteProgram(shaderID);
-            shaderID = 0;
+        return programID;
+    }
+
+	inline GLuint compileAndLinkShaderPair( const char *vertex, const char *fragment )
+	{
+		int programID = gltw::compileShaderPair(vertex, fragment);
+
+		if( programID == 0 ) return 0;
+
+        if( ! linkProgram(programID ) ) {
+        	gltw::deleteProgram(programID);
+            programID = 0;
         }
 
-		return shaderID;
+		return programID;
 	}
 
 	inline GLuint compileAndLinkShaderPairFromFile( const char *vertexFileName, const char *fragmentFileName )
@@ -262,6 +289,15 @@ namespace gltw {
 		 if( !getFileContents( fragmentFileName, fShaderCode) ) return 0;
 
 		 return compileAndLinkShaderPair(vShaderCode.c_str(), fShaderCode.c_str());
+	}
+
+	inline GLuint compileShaderPairFromFile( const char *vertexFileName, const char *fragmentFileName )
+	{
+		string vShaderCode, fShaderCode;
+		if( !getFileContents( vertexFileName, vShaderCode) ) return 0;
+		if( !getFileContents( fragmentFileName, fShaderCode) ) return 0;
+
+		return compileShaderPair(vShaderCode.c_str(), fShaderCode.c_str());
 	}
 
 	inline bool getFileContents( const char * fileName, string &str /*out*/ )
